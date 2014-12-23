@@ -1,0 +1,28 @@
+{
+  "name": "pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "watchify -d index.jsx -o bundle.js & st -nc"
+  },
+  "browserify": {
+    "transform": [
+      "6to5ify"
+    ]
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^0.12.2",
+    "react-router": "^0.11.6",
+    "reflux": "^0.2.1"
+  },
+  "devDependencies": {
+    "6to5ify": "^2.0.0",
+    "browserify": "^7.0.3",
+    "react": "^0.12.2",
+    "st": "^0.5.2",
+    "watchify": "^2.2.1"
+  }
+}
