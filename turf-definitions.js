@@ -4,5 +4,6 @@ module.exports = [
     { name: 'center' },
     { name: 'tin' },
     { name: 'flip' },
+    { name: 'input' },
     { name: 'extent' }
 ];
