@@ -12,6 +12,13 @@ I want to copy successful big languages that do similar tasks:
 * Leiningen
 * Vega
 
+There are some interesting features which could be great for GIS:
+
+* Reusing partial results for re-running jobs, like Makefiles do
+* Visualizing multiples stages of results
+* Automatically handling sync / async / map-reduce tasks in the same pipe
+* Automatically showing status of jobs
+
 ## UX
 
 The user experience of fbp or visual programming presents a bunch of challenges
