@@ -37,3 +37,18 @@ The big programmery things that are tricky:
 * Conditionals
 
 Data: do all function arguments come from 'nodes' or are they contained in nodes as settings?
+
+## API
+
+It occurs to me that a chainable "monad" style interface like
+
+```js
+turf(geojson).buffer().envelope().centroid().buffer().value();
+```
+
+Would have the ability to be
+
+* Natively typed, possibly even autocompletable, since each link in the chain will only expose functions that work with its current value type
+* Lazy, since internally calls can be saved rather than immediately evaluated.
+
+But this doesn't solve the problem of operating on more than one geometry.
