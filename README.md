@@ -50,5 +50,16 @@ Would have the ability to be
 
 * Natively typed, possibly even autocompletable, since each link in the chain will only expose functions that work with its current value type
 * Lazy, since internally calls can be saved rather than immediately evaluated.
+* Feature-wise algorithms can operate on one array instead of many:
+
+```js
+// creates two arrays
+turf.buffer(turf.centroid(features))
+
+// but
+turf(features).centroid().buffer().value();
+// can internally optimize to
+features.features.map(feature => turf.buffer(turf.centroid(feature)));
+```
 
 But this doesn't solve the problem of operating on more than one geometry.
