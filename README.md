@@ -37,3 +37,9 @@ The big programmery things that are tricky:
 * Conditionals
 
 Data: do all function arguments come from 'nodes' or are they contained in nodes as settings?
+
+## Layout
+
+A lot of graphs, including flow, allow free placement of nodes. I don't think
+this is necessary, and it may introduce problems as well as eliminate some
+useful signals to the user about function arity.

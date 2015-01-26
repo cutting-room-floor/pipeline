@@ -1,70 +1,97 @@
 var Router = require('react-router'),
   React = require('react'),
-  xtend = require('xtend'),
+  xt = require('xtend'),
   Reflux = require('reflux'),
-  turf = require('turf'),
-  turfDefinitions = require('turf-definitions'),
   { Route, DefaultRoute } = Router;
 
-turf.buffered = function(_) { return turf.buffer(_, 100, 'miles'); };
-turf.input = function(_) { return _; };
+const blockWidth = 200;
+const innerBlockWidth = blockWidth - 2;
+const blockHeight = 100;
+const innerBlockHeight = 100 - 2;
 
-L.mapbox.accessToken = 'pk.eyJ1IjoidG1jdyIsImEiOiJIZmRUQjRBIn0.lRARalfaGHnPdRcc-7QZYQ';
+var boxSizing = 'border-box';
 
-var occupy = function(w = 1, h = 1) {
-  return {
-    width: w * 400,
-    height: h * 250
-  };
+var containerStyle = {
+  font: 'normal 12px/20px sans-serif'
 };
 
-var position = (x, y) => {
-  return {
-    position: 'absolute',
-    transform: 'translate(' + (x * 400) + 'px,' + (y * 250) + 'px)'
-  };
+var linkStyle = {
+  color: '#eee',
+  textDecoration: 'none'
 };
 
-var offset = (x, y) => {
-  return {
-    position: 'absolute',
-    transform: 'translate(' + (x) + 'px,' + (y) + 'px)'
-  };
+var blockStyle = {
+  background: '#333',
+  boxSizing,
+  border: '1px solid #555'
 };
 
-var inputGeometry = {
-  type: 'FeatureCollection',
-  features: [
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [-77, 40]
-      }
-  },
-  {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [-79, 40]
-      }
-    },
-  {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [-79, 42]
-      }
-    }
-
-  ]
+var inputStyle = {
+  font: 'normal 38px/30px sans-serif',
+  textAlign: 'center',
+  background: '#444',
+  color: '#fff',
+  padding: 10,
+  width: innerBlockWidth,
+  height: innerBlockHeight,
+  boxSizing,
+  border: 'none'
 };
+
+var connectorAStyle = {
+  background: '#fff',
+  position: 'absolute',
+  textAlign: 'center',
+  display: 'block',
+  lineHeight: (20 / 2) + 'px',
+  left: (blockWidth / 2) - (20/2), width: 20, height: 20, top: blockHeight / 2
+};
+
+var connectorStyle = {
+  background: '#fff',
+  position: 'absolute',
+  top: 0, left: blockWidth / 2, width: 1, height: blockHeight / 2
+};
+
+var pageStyle = {
+  background: '#222',
+  position: 'fixed',
+  top: 0, left: 0, right: 0, bottom: 0
+};
+
+var pipelineStyle = (i) => ({
+  position: 'fixed',
+  left: blockWidth * i,
+  width: blockWidth,
+  top: 0,
+  boxSizing,
+  borderRight: '1px solid #555',
+  bottom: 0
+});
+
+var blockSize = {
+  width: blockWidth,
+  height: blockHeight
+};
+
+var position = (x, y) => ({
+  position: 'absolute',
+  transform: 'translate(' + (x * blockWidth) + 'px,' + (y * blockHeight) + 'px)'
+});
+
+var offset = (x, y) => ({
+  position: 'absolute',
+  transform: 'translate(' + (x) + 'px,' + (y) + 'px)'
+});
 
 var addPipe = Reflux.createAction();
 var setPipe = Reflux.createAction();
 var removePipe = Reflux.createAction();
 var pipelineStore = Reflux.createStore({
-  pipeline: [{ name: 'input', data: inputGeometry }],
+  pipeline: [{
+    type: 'input',
+    pipe: 0
+  }],
   getInitialState() { return this.pipeline; },
   init() {
     this.listenTo(addPipe, this.addPipe);
@@ -87,22 +114,46 @@ var pipelineStore = Reflux.createStore({
 
 var clone = (x) => JSON.parse(JSON.stringify(x));
 
-var maybeBbox = (x) => Array.isArray(x) ? turf.bboxPolygon(x) : x;
-
 var App = React.createClass({
-  mixins: [Reflux.connect(pipelineStore, 'pipeline')],
+  mixins: [Reflux.connect(pipelineStore, 'nodes')],
   render() {
+    return <div>
+      <div style={pageStyle}></div>
+      {[0,1,2,3,4,5].map(n => <div key={n} style={xt(pipelineStyle(n),offset(20,0))}></div>)}
+      <div style={xt(offset(20, 20), containerStyle)}>
+        {this.state.nodes.map(node => <Node node={node} key={node} />)}
+      </div>
+    </div>;
+  }
+});
 
-    var geometry = this.state.pipeline[0].data;
+var Connector = React.createClass({
+  render() {
+    return <div>
+      <div style={xt(position(this.props.node.pipe, 1), connectorStyle)}></div>
+      <a style={xt(position(this.props.node.pipe, 1), connectorAStyle)} href='#'>+</a>
+    </div>;
+  }
+});
 
-    var stages = this.state.pipeline.map((pipe, i) => {
-      geometry = maybeBbox(turf[pipe.name](clone(geometry)));
-      return <Stage pipe={pipe} i={i} key={i} data={clone(geometry)} />;
+var Node = React.createClass({
+  render() {
+    if (this.props.node.type === 'input') return <Input {...this.props} />;
+  }
+});
+
+var Input = React.createClass({
+  setValue(e) {
+    setPipe(this.props.pipe, {
+      value: e.target.value
     });
-
-    return <div style={offset(20, 20)}>
-      {stages}
-      <AddStage i={stages.length*2} />
+  },
+  render() {
+    return <div>
+        <div style={xt(position(this.props.node.pipe, 0), blockStyle, blockSize)}>
+          <input type='number' style={inputStyle} onChange={this.setValue} />
+        </div>
+        <Connector {...this.props} />
     </div>;
   }
 });
@@ -116,10 +167,13 @@ var AddStage = React.createClass({
     e.preventDefault();
   },
   render() {
-    return <a style={position(this.props.i, 0)} className='cube-short fill-lighten1 pad2 center'
+    return <div style={xt(position(this.props.i, 0), blockStyle, blockSize)}>
+        <a
+          style={linkStyle}
           href='#'
             onClick={addPipe.bind(this, { name: 'input' })}>
-            +</a>;
+            +</a>
+        </div>;
   }
 });
 
@@ -132,11 +186,10 @@ var AddPipe = React.createClass({
     e.preventDefault();
   },
   render() {
-    return <div className='cube-short fill-lighten0 pad1'>
-      <div className='col6'>
-        {turfDefinitions.map(td =>
+    return <div>
+      <div>
+        {ops.map(td =>
           <a href='#'
-            className={'col12 pad0 ' + (this.props.name == td.name ? 'fill-lighten1 icon arrowright' : '')}
             onClick={this.setPipe.bind(this, this.props.i, td)}
             key={td.name}>
             {td.name}</a>)}
@@ -152,36 +205,6 @@ var Stage = React.createClass({
         <AddPipe i={this.props.i} name={this.props.pipe.name} />
       </div>
       <div style={position((this.props.i * 2) + 1, 0)}>
-        <Map data={this.props.data} name={this.props.pipe.name} />
-      </div>
-    </div>;
-  }
-});
-
-var Map = React.createClass({
-  componentDidMount() {
-    this.map = L.mapbox.map(this.refs.map.getDOMNode(), 'examples.map-i86nkdio', {
-      maxZoom: 7,
-      zoomControl: false,
-      attributionControl: false
-    });
-    this.map.featureLayer.setGeoJSON(this.props.data);
-    this.map.fitBounds(this.map.featureLayer.getBounds());
-  },
-  componentDidUpdate() {
-    this.map.featureLayer.setGeoJSON(this.props.data);
-  },
-  removePipe() {
-    removePipe(this.props.i);
-  },
-  render() {
-    return <div className='contain'>
-      <div className='cube' ref='map'></div>
-      <div className='pin-topright fill-darken2 dark pad1'>
-        <strong>{this.props.name}</strong>
-        {(this.props.i !== undefined) && <a href='#'
-          className='icon trash'
-          onClick={this.removePipe}>remove</a>}
       </div>
     </div>;
   }
