@@ -1,1 +1,0 @@
-node bin/pipeline-js.js example/extent.json > example/extent.js && node example/extent.js example/extent.geojson

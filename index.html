@@ -3,13 +3,18 @@
   <head>
     <title>Pipeline</title>
     <meta charset='utf-8' />
-    <style>
-body { margin: 0; padding: 0; }
-    </style>
+    <script src="//cdn.ravenjs.com/1.1.15/native/raven.min.js"></script>
+    <link href='https://122e4e-mapbox.global.ssl.fastly.net/base/latest/base.css' rel='stylesheet' />
+    <link href='css/style.css' rel='stylesheet' />
   </head>
   <body>
-    <div id='mapboxgl'></div>
-    <div id='loader'></div>
+    <div id='pipeline'></div>
     <script src='bundle.js'></script>
+    <script>
+    if (typeof Raven !== 'undefined') {
+        Raven.config('https://93d58771c1d14e12aae5b28f5b4f70d9@app.getsentry.com/31970', {
+        }).install();
+    }
+    </script>
   </body>
 </html>
