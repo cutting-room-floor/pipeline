@@ -4,6 +4,9 @@ var React = require('react/addons'),
   { NotFoundRoute, Navigation, State, Link, Route,
     RouteHandler, DefaultRoute } = Router;
 
+// Provide your access token
+L.mapbox.accessToken = 'pk.eyJ1IjoidG1jdyIsImEiOiJIZmRUQjRBIn0.lRARalfaGHnPdRcc-7QZYQ';
+
 var turfDocs = require('./turf.json').functions;
 
 var samples = [
@@ -43,10 +46,8 @@ var pipelineStore = Reflux.createStore({
     };
     this.trigger(this.pipeline);
   },
-  setInput(name) {
-    this.pipeline.input = {
-      name: name
-    };
+  setInput(input) {
+    this.pipeline.input = input;
     this.trigger(this.pipeline);
   }
 });
@@ -55,7 +56,7 @@ var InputOption = React.createClass({
   mixins: [Reflux.connect(pipelineStore, 'pipeline')],
   selectInput() {
     if (this.props.name !== 'Sample') return alert('Only Sample is supported right now');
-    setInput(this.props.name);
+    setInput({ name: this.props.name });
   },
   render() {
     var klass = (this.state.pipeline.input &&
@@ -108,13 +109,17 @@ var TurfOptions = React.createClass({
     if (step.name === 'identity') {
       return (<div>
         {turfDocs.map(doc =>
-          <TurfOption step={this.props.step} {...doc} />)}
+          <TurfOption
+          key={doc.name}
+          step={this.props.step} {...doc} />)}
       </div>);
     } else {
       return (<div>
         {turfDocs.filter(doc => doc.name === step.name)
           .map(doc =>
-          <TurfOption big={true} step={this.props.step} {...doc} />)}
+          <TurfOption
+          key={doc.name}
+          big={true} step={this.props.step} {...doc} />)}
       </div>);
     }
   }
@@ -135,16 +140,38 @@ var TurfOption = React.createClass({
     var klass = (step.name === this.props.name) ?
       'fill-lighten3 pad1 keyline-all' : 'fill-white pad1 keyline-all';
     var size = this.props.big ? 'col12' : 'col2 pad0 small';
+    var height = this.props.big ? '' : 'row3 clip';
     return (<a onClick={this.setStepType} className={size}>
       <div className='fill-blue'>
         <div className={klass}>
-          <div className='row3 clip'>
+          <div className={height}>
             <h3>{this.props.name.replace('turf/', '')}</h3>
             <p>{this.props.description}</p>
           </div>
         </div>
       </div>
     </a>);
+  }
+});
+
+var Output = React.createClass({
+  mixins: [Reflux.connect(pipelineStore, 'pipeline')],
+  componentDidMount() {
+    var map = L.mapbox.map(this.refs.map.getDOMNode(), 'tmcw.l12c66f2', {
+      scrollWheelZoom: false
+    });
+    this.layer = L.mapbox.featureLayer().addTo(map);
+  },
+  componentDidUpdate() {
+    if (this.state.pipeline.input.data) {
+      this.layer.setGeoJSON(this.state.pipeline.input.data);
+    }
+  },
+  render() {
+    return (<div className='pad0 pad4y space-top4 keyline-top'>
+      <div ref='map' className='row5 pad1y col12 clearfix'>
+      </div>
+    </div>);
   }
 });
 
@@ -157,7 +184,9 @@ var Steps = React.createClass({
     return (<div className='pad0 pad4y space-top4 keyline-top'>
       <h2 className='pad0x'>Steps</h2>
       <div className='pad1y col12 clearfix'>
-        <TurfOptions step={0} />
+        {this.state.pipeline.steps.map((step, i) =>
+          <TurfOptions step={i} />
+        )}
       </div>
     </div>);
   }
@@ -165,10 +194,18 @@ var Steps = React.createClass({
 
 var SampleSettings = React.createClass({
   mixins: [Reflux.connect(pipelineStore, 'pipeline')],
+  chooseSample(e) {
+    setInput({
+      name: 'sample',
+      data: samples.filter(sample => sample.name === e.target.value)[0].data
+    });
+  },
   render() {
     return (<div>
       <select onChange={this.chooseSample}>
+        <option key='' value=''></option>
         {samples.map(sample => (<option
+          key={sample.name}
           value={sample.name}>{sample.name}</option>))}
       </select>
     </div>);
@@ -193,6 +230,7 @@ var Page = React.createClass({
           <InputSection />
           <InputSettings />
           <Steps />
+          <Output />
         </div>
       </div>
     );

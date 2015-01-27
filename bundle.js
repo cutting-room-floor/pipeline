@@ -21910,6 +21910,9 @@ var RouteHandler = Router.RouteHandler;
 var DefaultRoute = Router.DefaultRoute;
 
 
+// Provide your access token
+L.mapbox.accessToken = "pk.eyJ1IjoidG1jdyIsImEiOiJIZmRUQjRBIn0.lRARalfaGHnPdRcc-7QZYQ";
+
 var turfDocs = require("./turf.json").functions;
 
 var samples = [{
@@ -21947,10 +21950,8 @@ var pipelineStore = Reflux.createStore({
     };
     this.trigger(this.pipeline);
   },
-  setInput: function setInput(name) {
-    this.pipeline.input = {
-      name: name
-    };
+  setInput: function setInput(input) {
+    this.pipeline.input = input;
     this.trigger(this.pipeline);
   }
 });
@@ -21960,7 +21961,7 @@ var InputOption = React.createClass({
   mixins: [Reflux.connect(pipelineStore, "pipeline")],
   selectInput: function selectInput() {
     if (this.props.name !== "Sample") return alert("Only Sample is supported right now");
-    setInput(this.props.name);
+    setInput({ name: this.props.name });
   },
   render: function render() {
     var klass = this.state.pipeline.input && this.state.pipeline.input.name === this.props.name ? "fill-lighten3 pad2 keyline-all" : "fill-white pad2 keyline-all";
@@ -22045,7 +22046,9 @@ var TurfOptions = React.createClass({
         "div",
         null,
         turfDocs.map(function (doc) {
-          return React.createElement(TurfOption, React.__spread({ step: _this.props.step }, doc));
+          return React.createElement(TurfOption, React.__spread({
+            key: doc.name,
+            step: _this.props.step }, doc));
         })
       );
     } else {
@@ -22055,7 +22058,9 @@ var TurfOptions = React.createClass({
         turfDocs.filter(function (doc) {
           return doc.name === step.name;
         }).map(function (doc) {
-          return React.createElement(TurfOption, React.__spread({ big: true, step: _this.props.step }, doc));
+          return React.createElement(TurfOption, React.__spread({
+            key: doc.name,
+            big: true, step: _this.props.step }, doc));
         })
       );
     }
@@ -22087,6 +22092,7 @@ var TurfOption = React.createClass({
     var step = this.state.pipeline.steps[this.props.step];
     var klass = step.name === this.props.name ? "fill-lighten3 pad1 keyline-all" : "fill-white pad1 keyline-all";
     var size = this.props.big ? "col12" : "col2 pad0 small";
+    var height = this.props.big ? "" : "row3 clip";
     return React.createElement(
       "a",
       { onClick: this.setStepType, className: size },
@@ -22098,7 +22104,7 @@ var TurfOption = React.createClass({
           { className: klass },
           React.createElement(
             "div",
-            { className: "row3 clip" },
+            { className: height },
             React.createElement(
               "h3",
               null,
@@ -22112,6 +22118,29 @@ var TurfOption = React.createClass({
           )
         )
       )
+    );
+  }
+});
+
+var Output = React.createClass({
+  displayName: "Output",
+  mixins: [Reflux.connect(pipelineStore, "pipeline")],
+  componentDidMount: function componentDidMount() {
+    var map = L.mapbox.map(this.refs.map.getDOMNode(), "tmcw.l12c66f2", {
+      scrollWheelZoom: false
+    });
+    this.layer = L.mapbox.featureLayer().addTo(map);
+  },
+  componentDidUpdate: function componentDidUpdate() {
+    if (this.state.pipeline.input.data) {
+      this.layer.setGeoJSON(this.state.pipeline.input.data);
+    }
+  },
+  render: function render() {
+    return React.createElement(
+      "div",
+      { className: "pad0 pad4y space-top4 keyline-top" },
+      React.createElement("div", { ref: "map", className: "row5 pad1y col12 clearfix" })
     );
   }
 });
@@ -22134,7 +22163,9 @@ var Steps = React.createClass({
       React.createElement(
         "div",
         { className: "pad1y col12 clearfix" },
-        React.createElement(TurfOptions, { step: 0 })
+        this.state.pipeline.steps.map(function (step, i) {
+          return React.createElement(TurfOptions, { step: i });
+        })
       )
     );
   }
@@ -22143,6 +22174,14 @@ var Steps = React.createClass({
 var SampleSettings = React.createClass({
   displayName: "SampleSettings",
   mixins: [Reflux.connect(pipelineStore, "pipeline")],
+  chooseSample: function chooseSample(e) {
+    setInput({
+      name: "sample",
+      data: samples.filter(function (sample) {
+        return sample.name === e.target.value;
+      })[0].data
+    });
+  },
   render: function render() {
     return React.createElement(
       "div",
@@ -22150,10 +22189,12 @@ var SampleSettings = React.createClass({
       React.createElement(
         "select",
         { onChange: this.chooseSample },
+        React.createElement("option", { key: "", value: "" }),
         samples.map(function (sample) {
           return React.createElement(
             "option",
             {
+              key: sample.name,
               value: sample.name },
             sample.name
           );
@@ -22190,7 +22231,8 @@ var Page = React.createClass({
         { className: "pad4x pad2y" },
         React.createElement(InputSection, null),
         React.createElement(InputSettings, null),
-        React.createElement(Steps, null)
+        React.createElement(Steps, null),
+        React.createElement(Output, null)
       )
     );
     /* jshint ignore:end */
@@ -26830,7 +26872,7 @@ process.chdir = function (dir) {
 };
 
 },{}],"/Users/tmcw/src/pipeline/turf.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "functions": [
         {
             "name": "turf/aggregate",
