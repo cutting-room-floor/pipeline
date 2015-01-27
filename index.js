@@ -73,7 +73,7 @@ var InputOption = React.createClass({
 
 var InputSection = React.createClass({
   render() {
-    return (<div>
+    return (<div className='space-top4'>
       <h2 className='pad0x'>Input</h2>
       <div className='pad1y col12 clearfix'>
         <InputOption name='Sample' />
@@ -114,7 +114,7 @@ var TurfOptions = React.createClass({
       return (<div>
         {turfDocs.filter(doc => doc.name === step.name)
           .map(doc =>
-          <TurfOption step={this.props.step} {...doc} />)}
+          <TurfOption big={true} step={this.props.step} {...doc} />)}
       </div>);
     }
   }
@@ -134,10 +134,11 @@ var TurfOption = React.createClass({
     var step = this.state.pipeline.steps[this.props.step];
     var klass = (step.name === this.props.name) ?
       'fill-lighten3 pad1 keyline-all' : 'fill-white pad1 keyline-all';
-    return (<a onClick={this.setStepType} className='col2 pad0'>
+    var size = this.props.big ? 'col12' : 'col2 pad0 small';
+    return (<a onClick={this.setStepType} className={size}>
       <div className='fill-blue'>
         <div className={klass}>
-          <div className='row2 clip'>
+          <div className='row3 clip'>
             <h3>{this.props.name.replace('turf/', '')}</h3>
             <p>{this.props.description}</p>
           </div>
@@ -150,7 +151,10 @@ var TurfOption = React.createClass({
 var Steps = React.createClass({
   mixins: [Reflux.connect(pipelineStore, 'pipeline')],
   render() {
-    return (<div className='pad0'>
+    if (!this.state.pipeline.input) {
+      return (<div></div>);
+    }
+    return (<div className='pad0 pad4y space-top4 keyline-top'>
       <h2 className='pad0x'>Steps</h2>
       <div className='pad1y col12 clearfix'>
         <TurfOptions step={0} />

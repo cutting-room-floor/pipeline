@@ -21989,7 +21989,7 @@ var InputSection = React.createClass({
   render: function render() {
     return React.createElement(
       "div",
-      null,
+      { className: "space-top4" },
       React.createElement(
         "h2",
         { className: "pad0x" },
@@ -22055,7 +22055,7 @@ var TurfOptions = React.createClass({
         turfDocs.filter(function (doc) {
           return doc.name === step.name;
         }).map(function (doc) {
-          return React.createElement(TurfOption, React.__spread({ step: _this.props.step }, doc));
+          return React.createElement(TurfOption, React.__spread({ big: true, step: _this.props.step }, doc));
         })
       );
     }
@@ -22086,9 +22086,10 @@ var TurfOption = React.createClass({
   render: function render() {
     var step = this.state.pipeline.steps[this.props.step];
     var klass = step.name === this.props.name ? "fill-lighten3 pad1 keyline-all" : "fill-white pad1 keyline-all";
+    var size = this.props.big ? "col12" : "col2 pad0 small";
     return React.createElement(
       "a",
-      { onClick: this.setStepType, className: "col2 pad0" },
+      { onClick: this.setStepType, className: size },
       React.createElement(
         "div",
         { className: "fill-blue" },
@@ -22097,7 +22098,7 @@ var TurfOption = React.createClass({
           { className: klass },
           React.createElement(
             "div",
-            { className: "row2 clip" },
+            { className: "row3 clip" },
             React.createElement(
               "h3",
               null,
@@ -22119,9 +22120,12 @@ var Steps = React.createClass({
   displayName: "Steps",
   mixins: [Reflux.connect(pipelineStore, "pipeline")],
   render: function render() {
+    if (!this.state.pipeline.input) {
+      return React.createElement("div", null);
+    }
     return React.createElement(
       "div",
-      { className: "pad0" },
+      { className: "pad0 pad4y space-top4 keyline-top" },
       React.createElement(
         "h2",
         { className: "pad0x" },
@@ -26826,7 +26830,7 @@ process.chdir = function (dir) {
 };
 
 },{}],"/Users/tmcw/src/pipeline/turf.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "functions": [
         {
             "name": "turf/aggregate",
