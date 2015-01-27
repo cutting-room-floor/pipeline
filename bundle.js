@@ -21923,10 +21923,14 @@ var samples = [{
 window.React = React;
 
 var setInput = Reflux.createAction();
+var setStepType = Reflux.createAction();
 var pipelineStore = Reflux.createStore({
   pipeline: {
     input: null,
-    steps: [],
+    steps: [{
+      name: "identity",
+      parameters: {}
+    }],
     output: null
   },
   getInitialState: function getInitialState() {
@@ -21934,6 +21938,14 @@ var pipelineStore = Reflux.createStore({
   },
   init: function init() {
     this.listenTo(setInput, this.setInput);
+    this.listenTo(setStepType, this.setStepType);
+  },
+  setStepType: function setStepType(i, name) {
+    this.pipeline.steps[0] = {
+      name: name,
+      parameters: {}
+    };
+    this.trigger(this.pipeline);
   },
   setInput: function setInput(name) {
     this.pipeline.input = {
@@ -22026,30 +22038,60 @@ var TurfOptions = React.createClass({
   displayName: "TurfOptions",
   mixins: [Reflux.connect(pipelineStore, "pipeline")],
   render: function render() {
-    return React.createElement(
-      "div",
-      null,
-      turfDocs.map(function (doc) {
-        return React.createElement(TurfOption, doc);
-      })
-    );
+    var _this = this;
+    var step = this.state.pipeline.steps[this.props.step];
+    if (step.name === "identity") {
+      return React.createElement(
+        "div",
+        null,
+        turfDocs.map(function (doc) {
+          return React.createElement(TurfOption, React.__spread({ step: _this.props.step }, doc));
+        })
+      );
+    } else {
+      return React.createElement(
+        "div",
+        null,
+        turfDocs.filter(function (doc) {
+          return doc.name === step.name;
+        }).map(function (doc) {
+          return React.createElement(TurfOption, React.__spread({ step: _this.props.step }, doc));
+        })
+      );
+    }
   }
 });
 
 var TurfOption = React.createClass({
   displayName: "TurfOption",
   mixins: [Reflux.connect(pipelineStore, "pipeline")],
-  selectInput: function selectInput() {
-    setInput(this.props.name);
-  },
+  setStepType: (function (_setStepType) {
+    var _setStepTypeWrapper = function setStepType() {
+      return _setStepType.apply(this, arguments);
+    };
+
+    _setStepTypeWrapper.toString = function () {
+      return _setStepType.toString();
+    };
+
+    return _setStepTypeWrapper;
+  })(function () {
+    var step = this.state.pipeline.steps[this.props.step];
+    if (step.name === this.props.name) {
+      setStepType(this.props.step, "identity");
+    } else {
+      setStepType(this.props.step, this.props.name);
+    }
+  }),
   render: function render() {
-    var klass = this.state.pipeline.input && this.state.pipeline.input.name === this.props.name ? "fill-lighten3 pad1 keyline-all" : "fill-white pad1 keyline-all";
+    var step = this.state.pipeline.steps[this.props.step];
+    var klass = step.name === this.props.name ? "fill-lighten3 pad1 keyline-all" : "fill-white pad1 keyline-all";
     return React.createElement(
       "a",
-      { onClick: this.selectInput, className: "col2 pad0" },
+      { onClick: this.setStepType, className: "col2 pad0" },
       React.createElement(
         "div",
-        { className: "fill-green" },
+        { className: "fill-blue" },
         React.createElement(
           "div",
           { className: klass },
@@ -22088,7 +22130,7 @@ var Steps = React.createClass({
       React.createElement(
         "div",
         { className: "pad1y col12 clearfix" },
-        React.createElement(TurfOptions, null)
+        React.createElement(TurfOptions, { step: 0 })
       )
     );
   }
@@ -26784,7 +26826,7 @@ process.chdir = function (dir) {
 };
 
 },{}],"/Users/tmcw/src/pipeline/turf.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "functions": [
         {
             "name": "turf/aggregate",

@@ -19,10 +19,14 @@ var samples = [
 window.React = React;
 
 var setInput = Reflux.createAction();
+var setStepType = Reflux.createAction();
 var pipelineStore = Reflux.createStore({
   pipeline: {
     input: null,
-    steps: [],
+    steps: [{
+      name: 'identity',
+      parameters: {}
+    }],
     output: null
   },
   getInitialState() {
@@ -30,6 +34,14 @@ var pipelineStore = Reflux.createStore({
   },
   init() {
     this.listenTo(setInput, this.setInput);
+    this.listenTo(setStepType, this.setStepType);
+  },
+  setStepType(i, name) {
+    this.pipeline.steps[0] = {
+      name: name,
+      parameters: {}
+    };
+    this.trigger(this.pipeline);
   },
   setInput(name) {
     this.pipeline.input = {
@@ -92,23 +104,38 @@ var InputSettings = React.createClass({
 var TurfOptions = React.createClass({
   mixins: [Reflux.connect(pipelineStore, 'pipeline')],
   render() {
-    return (<div>
-      {turfDocs.map(doc => <TurfOption {...doc} />)}
-    </div>);
+    var step = this.state.pipeline.steps[this.props.step];
+    if (step.name === 'identity') {
+      return (<div>
+        {turfDocs.map(doc =>
+          <TurfOption step={this.props.step} {...doc} />)}
+      </div>);
+    } else {
+      return (<div>
+        {turfDocs.filter(doc => doc.name === step.name)
+          .map(doc =>
+          <TurfOption step={this.props.step} {...doc} />)}
+      </div>);
+    }
   }
 });
 
 var TurfOption = React.createClass({
   mixins: [Reflux.connect(pipelineStore, 'pipeline')],
-  selectInput() {
-    setInput(this.props.name);
+  setStepType() {
+    var step = this.state.pipeline.steps[this.props.step];
+    if (step.name === this.props.name) {
+      setStepType(this.props.step, 'identity');
+    } else {
+      setStepType(this.props.step, this.props.name);
+    }
   },
   render() {
-    var klass = (this.state.pipeline.input &&
-      this.state.pipeline.input.name === this.props.name) ?
+    var step = this.state.pipeline.steps[this.props.step];
+    var klass = (step.name === this.props.name) ?
       'fill-lighten3 pad1 keyline-all' : 'fill-white pad1 keyline-all';
-    return (<a onClick={this.selectInput} className='col2 pad0'>
-      <div className='fill-green'>
+    return (<a onClick={this.setStepType} className='col2 pad0'>
+      <div className='fill-blue'>
         <div className={klass}>
           <div className='row2 clip'>
             <h3>{this.props.name.replace('turf/', '')}</h3>
@@ -126,7 +153,7 @@ var Steps = React.createClass({
     return (<div className='pad0'>
       <h2 className='pad0x'>Steps</h2>
       <div className='pad1y col12 clearfix'>
-        <TurfOptions />
+        <TurfOptions step={0} />
       </div>
     </div>);
   }
